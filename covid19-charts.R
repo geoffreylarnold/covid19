@@ -81,3 +81,26 @@ states_plot <- ggplot(states_agg, aes(x = date, y = cases, color = state, group 
 animate(states_plot, end_pause = 10)
 
 anim_save("us_states.gif", animation = last_animation())
+
+
+# Deaths
+states_deaths <- states_agg %>%
+  filter(deaths > 0)
+
+state_deaths <- ggplot(states_deaths, aes(x = date, y = deaths, color = state, group = state)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label = state)) +
+  theme_bw() +
+  labs(x = "",
+       y = "", 
+       title = "US Covid-19 Deaths by State",
+       color = "") +
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = comma) +
+  transition_reveal(date) +
+  view_follow()
+
+animate(state_deaths, end_pause = 10)
+
+anim_save("us_states_deaths.gif", animation = last_animation())
