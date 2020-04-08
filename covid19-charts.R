@@ -107,3 +107,34 @@ state_deaths <- ggplot(states_deaths, aes(x = date, y = deaths, color = state, g
 
 animate(state_deaths, end_pause = 10, duration = 20, fps = 20, width = 400, height = 400, renderer = gifski_renderer())
 anim_save("us_states_deaths.gif", animation = last_animation())
+
+world <- read_csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+
+coords <- world %>%
+  distinct(`Province/State`, `Country/Region`, Lat, Long)
+
+p_world <- world %>%
+  select(-c(Lat, Long)) %>%
+  pivot_longer(-c(`Province/State`, `Country/Region`), names_to = "date", values_to = "cases") %>%
+  filter(cases > 0) %>%
+  mutate(date = as.Date(date, format = "%m/%d/%y")) %>%
+  group_by(`Country/Region`, date) %>%
+  summarise(cases = sum(cases))
+
+world_cases <- ggplot(p_world, aes(x = date, y = cases, color = `Country/Region`, group = `Country/Region`)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label = `Country/Region`)) +
+  theme_bw() +
+  labs(x = "",
+       y = "", 
+       title = "Global Covid-19 Cases by Country/Region",
+       subtitle = "Date: {frame_along}",
+       color = "") +
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = comma) +
+  transition_reveal(date) +
+  view_follow()
+
+animate(world_cases, end_pause = 10, duration = 45, fps = 20, width = 400, height = 400, renderer = gifski_renderer())
+anim_save("world_cases.gif", animation = last_animation())
