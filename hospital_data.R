@@ -4,6 +4,7 @@ require(tidyr)
 require(ggplot2)
 require(ggrepel)
 
+# Load and transform data
 hospital <- fromJSON( "https://data.pa.gov/resource/kayn-sjhx.json?County=Allegheny") %>%
   mutate(date = as.Date(date)) %>%
   mutate_at(vars(ends_with("avail")), as.numeric) %>%
@@ -15,9 +16,11 @@ hospital <- fromJSON( "https://data.pa.gov/resource/kayn-sjhx.json?County=Allegh
   arrange(date) %>%
   select(-county)
 
+# Ross: PIVOT!
 long <- hospital %>%
   pivot_longer(-date)
 
+# Clean and label
 graph_data <- long %>%
   filter(name %in% c('icu_avail', 'covid_vents', 'covid_patients', 'ped_avail')) %>%
   mutate(value = case_when(name == 'ped_avail' & date == as.Date('2020-10-01') ~ 0,
@@ -31,6 +34,7 @@ graph_data <- long %>%
                            TRUE ~ "")) %>%
   filter(value > 0)
 
+# Patients & Ventilators
 graph_data %>%
   filter(grepl('Covid-19',name)) %>%
   ggplot(aes(x = date, y = value, color = name, group = name)) +
@@ -51,6 +55,7 @@ graph_data %>%
          caption = "Source: PA Department of Health",
          color = "")
 
+# ICU Graph
 graph_data %>%
   filter(!grepl('Covid-19',name)) %>%
   ggplot(aes(x = date, y = value, color = name, group = name)) +
